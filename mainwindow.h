@@ -13,6 +13,7 @@
 #include <utility>
 #include <algorithm>
 #include <random>
+#include <QDateTime>
 
 
 
@@ -29,7 +30,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     bool two_cards_reveal = false;
-    std::list<std::pair<int,int>> links[1];
+    std::list<std::pair<int,int>> links;
     QList<QLabel> cards;
     std::pair<int,int> pair_compare;
     int theme;
@@ -37,9 +38,10 @@ public:
     void reset();
     void win();
     void resetButton(QPushButton* button);
-    void link_card(std::list<std::pair<int,int>> links[1]);
+    void link_card(int nb_card);
     void updateTimer();
-        bool paire_compare(int pos);
+    void stok(int pos);
+    bool paire_compare();
 
 public slots:
     void init();

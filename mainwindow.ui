@@ -123,7 +123,7 @@
       <item>
        <widget class="QRadioButton" name="radioButton_2">
         <property name="text">
-         <string>Soft</string>
+         <string>Voiture</string>
         </property>
         <attribute name="buttonGroup">
          <string notr="true">theme</string>

@@ -34,7 +34,7 @@ void MainWindow::timing()
     ui->label_2->setText("00:00:00");
 
     currentTime.setHMS(0, 0, 0);
-    // Start the timer
+
     timer->start(1000);
 }
 
@@ -43,10 +43,11 @@ void MainWindow::init()
     timer->stop();
     ui->label_3->setText("");
     timing();
+    qDebug() << this->links;
     int cnt;
     if(ui->theme->checkedButton()->text() == "Bière")
         theme = 2;
-    else if(ui->theme->checkedButton()->text() == "Soft")
+    else if(ui->theme->checkedButton()->text() == "Voiture")
         theme = 1;
     else if(ui->theme->checkedButton()->text() == "Eau")
         theme = 0;
@@ -56,16 +57,32 @@ void MainWindow::init()
     if(ui->difficult->checkedButton()->text() == "Difficile")
     {
         reset();
+        link_card(32);
         cnt = 0;
+
         for(int i = 0; i < 32; i++)
         {
+            int target = i+1;
+            auto foundPair = std::find_if(links.begin(), links.end(), [target](const std::pair<int, int>& pair) {
+                return pair.first == target || pair.second == target;
+            });
+            std::size_t index = std::distance(links.begin(), foundPair);
             QPushButton *card = new QPushButton(tr("card_%1").arg(i+1));
             if(i%8 == 0 && i != 0)
                 cnt++;
             ui->gridLayout_2->addWidget(card, cnt, i-8*cnt);
             connect(card, &QPushButton::clicked, this, [=](){
                 card->setText("");
-                card->setIcon(QIcon(QPixmap(":/Image/biere/b1.png")));
+                QString s_img = "";
+                if (this->theme == 0){
+                    s_img = QStringLiteral(":/Image/eau/e%1.png").arg(index+1);
+                }
+                else if (this->theme == 1){
+                    s_img = QStringLiteral(":/Image/voiture/v%1.png").arg(index+1);
+                }
+                else if (this->theme == 2){
+                    s_img = QStringLiteral(":/Image/biere/b%1.png").arg(index+1);}
+                card->setIcon(QIcon(QPixmap(s_img)));
                 card->setIconSize(QSize(100,100));
                 win();
             });
@@ -74,35 +91,75 @@ void MainWindow::init()
     else if(ui->difficult->checkedButton()->text() == "Moyen")
     {
         cnt = 0;
+
         reset();
+        link_card(16);
         for (int i = 0; i < 16; i++)
         {
+            int target = i+1;
+            auto foundPair = std::find_if(links.begin(), links.end(), [target](const std::pair<int, int>& pair) {
+                return pair.first == target || pair.second == target;
+            });
+            std::size_t index = std::distance(links.begin(), foundPair);
+
             QPushButton* card = new QPushButton(tr("card_ %1").arg(i + 1));
             if (i % 8 == 0 && i != 0)
                 cnt++;
             ui->gridLayout_2->addWidget(card, cnt, i - 8 * cnt);
             connect(card, &QPushButton::clicked, this, [=]() {
                     card->setText("");
-                    card->setIcon(QIcon(QPixmap(":/Image/biere/b1.png")));
-                    card->setIconSize(QSize(100, 100));
-                    win();
+                QString s_img = "";
+                if (this->theme == 0){
+                    s_img = QStringLiteral(":/Image/eau/e%1.png").arg(index+1);
+                }
+                else if (this->theme == 1){
+                    s_img = QStringLiteral(":/Image/voiture/v%1.png").arg(index+1);
+                }
+                else if (this->theme == 2){
+                    s_img = QStringLiteral(":/Image/biere/b%1.png").arg(index+1);}
+                card->setIcon(QIcon(QPixmap(s_img)));
+                card->setIconSize(QSize(100, 100));
+                win();
             });
         }
     }
     else if(ui->difficult->checkedButton()->text() == "Facile")
     {
         cnt = 0;
+
         reset();
+        link_card(8);
         for(int i = 0; i < 8; i++)
         {
+            int target = i+1;
+            auto foundPair = std::find_if(links.begin(), links.end(), [target](const std::pair<int, int>& pair) {
+                return pair.first == target || pair.second == target;
+            });
+            std::size_t index = std::distance(links.begin(), foundPair);
+
             QPushButton *card = new QPushButton(tr("card_%1").arg(i+1));
             if(i%8 == 0 && i != 0)
                 cnt++;
             ui->gridLayout_2->addWidget(card, cnt, i-8*cnt);
             connect(card, &QPushButton::clicked, this, [=](){
                 card->setText("");
-                card->setIcon(QIcon(QPixmap(":/Image/biere/b1.png")));
+                QString s_img = "";
+                if (this->theme == 0){
+                    s_img = QStringLiteral(":/Image/eau/e%1.png").arg(index+1);
+                }
+                else if (this->theme == 1){
+                    s_img = QStringLiteral(":/Image/voiture/v%1.png").arg(index+1);
+                }
+                else if (this->theme == 2){
+                    s_img = QStringLiteral(":/Image/biere/b%1.png").arg(index+1);
+                }
+
+                card->setIcon(QIcon(QPixmap(s_img)));
                 card->setIconSize(QSize(100,100));
+                this->stok(i+1);
+
+                if (this->pair_compare.first != 0 && this->pair_compare.second != 0)
+                    this->paire_compare();
                 win();
             });
         }
@@ -125,33 +182,33 @@ void MainWindow::reset()
     }
 }
 
-void MainWindow::link_card(std::list<std::pair<int,int>> link[1])
+void MainWindow::link_card(int nb_card)
 {
     std::list<int> disponibles;
 
-    // Remplir la liste des nombres disponibles avec les entiers de 1 à 16
-    for (int i = 1; i <= 16; i++)
+
+    for (int i = 1; i <= nb_card; i++)
     {
         disponibles.push_back(i);
     }
 
-    // Créer un générateur de nombres aléatoires
+
     std::random_device rd;
     std::mt19937 rng(rd());
 
-    // Mélanger la liste des nombres disponibles de manière aléatoire
+
     std::vector<int> disponiblesVec(disponibles.begin(), disponibles.end());
     std::shuffle(disponiblesVec.begin(), disponiblesVec.end(), rng);
     disponibles.assign(disponiblesVec.begin(), disponiblesVec.end());
 
-    // Créer les 8 listes avec les paires d'entiers
-    for (int i = 0; i < 8; i++)
+
+    for (int i = 0; i <= nb_card%8; i++)
     {
         for (int j = 0; j < 8; j++)
         {
             if (disponibles.empty())
             {
-                break; // Sortir de la boucle si la liste est vide
+                break;
             }
 
             int premier = disponibles.front();
@@ -159,46 +216,57 @@ void MainWindow::link_card(std::list<std::pair<int,int>> link[1])
 
             if (disponibles.empty())
             {
-                break; // Sortir de la boucle si la liste est vide
+                break;
             }
 
             int deuxieme = disponibles.front();
             disponibles.pop_front();
 
-            link[1].push_back(std::make_pair(premier, deuxieme));
+            this->links.push_back(std::make_pair(premier, deuxieme));
         }
 
-        // Réinitialiser la liste des nombres disponibles pour la prochaine liste
         disponiblesVec.assign(disponibles.begin(), disponibles.end());
         std::shuffle(disponiblesVec.begin(), disponiblesVec.end(), rng);
         disponibles.assign(disponiblesVec.begin(), disponiblesVec.end());
     }
+    for (const auto &paire : links)
+    {
+        qDebug() << "Premier élément : " << paire.first << ", Deuxième élément : " << paire.second;
+    }
+    std::cout << std::endl;
 }
 
-bool MainWindow::pair_compare(int pos){
-    if (this->p_compare.first != 0 && this->p_compare.second != 0){
-        this->p_compare.first = 0;
-        this->p_compare.second = 0;
-    }
-    else if (this->p_compare.first != 0)
-        this->p_compare.second = pos;
-    else if (this->p_compare.second != 0)
-    this->p_compare.second = pos;
+bool MainWindow::paire_compare(){
 
     for(const auto& paire : links) {
-     if (paire == this->p_compare)
-         return true;
-     else
-         return false;
-
+        if (paire == this->pair_compare)
+        {
+            this->pair_compare.first = 0;
+            this->pair_compare.second = 0;
+            return true;
+        }
+        else
+        {
+            this->pair_compare.first = 0;
+            this->pair_compare.second = 0;
+            return false;
+        }
     }
     return false;
-    }
+}
+
+void MainWindow::stok(int pos)
+{
+    if (this->pair_compare.first == 0)
+        this->pair_compare.first = pos;
+    else if (this->pair_compare.second == 0)
+        this->pair_compare.second = pos;
+}
 
 void MainWindow::win()
 {
     bool win = true;
-    QGridLayout* gridLayout = ui->gridLayout_2; // Replace 'gridLayout_2' with your actual grid layout object
+    QGridLayout* gridLayout = ui->gridLayout_2;
 
     QList<QPushButton*> buttonList;
 
@@ -206,9 +274,9 @@ void MainWindow::win()
         QLayoutItem* item = gridLayout->itemAt(i);
         if (item) {
             if (QPushButton* button = qobject_cast<QPushButton*>(item->widget())) {
-                // Found a QPushButton in the grid layout
+
                 buttonList.append(button);
-                // Perform any desired operations on the button
+
             }
         }
     }
