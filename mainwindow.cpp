@@ -175,6 +175,26 @@ void MainWindow::link_card(std::list<std::pair<int,int>> link[1])
     }
 }
 
+bool MainWindow::pair_compare(int pos){
+    if (this->p_compare.first != 0 && this->p_compare.second != 0){
+        this->p_compare.first = 0;
+        this->p_compare.second = 0;
+    }
+    else if (this->p_compare.first != 0)
+        this->p_compare.second = pos;
+    else if (this->p_compare.second != 0)
+    this->p_compare.second = pos;
+
+    for(const auto& paire : links) {
+     if (paire == this->p_compare)
+         return true;
+     else
+         return false;
+
+    }
+    return false;
+    }
+
 void MainWindow::win()
 {
     bool win = true;

@@ -39,6 +39,7 @@ public:
     void resetButton(QPushButton* button);
     void link_card(std::list<std::pair<int,int>> links[1]);
     void updateTimer();
+        bool paire_compare(int pos);
 
 public slots:
     void init();
